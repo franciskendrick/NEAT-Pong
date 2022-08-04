@@ -66,34 +66,28 @@ class PongGame:
             paddles = self.game.paddles
             ball = self.game.ball
 
-            # Get inputs
-            inputs1 = (
-                paddles["left"].rect.y,  # Y coordinate of the paddle
-                ball.rect.y,  # Y coordinate of the ball
-                abs(paddles["left"].rect.x - ball.rect.x),  # Distance in the X coordinate between the ball and the padle
-            )
-            inputs2 = (
-                paddles["right"].rect.y,  # Y coordinate of the paddle
-                ball.rect.y,  # Y coordinate of the ball
-                abs(paddles["right"].rect.x - ball.rect.x),  # Distance in the X coordinate between the ball and the padle
-            )
+            sides = ["left", "right"]
+            nets = [net1, net2]
+            genomes = [genome1, genome2]
+            for side, net, genome in zip(sides, nets, genomes):
+                # Get inputs
+                input = (
+                    paddles[side].rect.y,  # Y coordinate of the paddle
+                    ball.rect.y,  # Y coordinate of the ball
+                    abs(paddles[side].rect.x - ball.rect.x)  # Distance in the X coordinate between the ball and the paddle
+                )
 
-            # Get outputs
-            output1 = net1.activate(inputs1)
-            output2 = net2.activate(inputs2)
+                # Get output
+                output = net.activate(input)
 
-            # Decisions
-            decision1 = output1.index(max(output1))
-            if decision1 == 1:  # move up
-                self.game.paddles["left"].movement(True, False)
-            elif decision1 == 2:  # move down
-                self.game.paddles["left"].movement(False, True)
-
-            decision2 = output2.index(max(output2))
-            if decision2 == 1:  # move up
-                self.game.paddles["right"].movement(True, False)
-            elif decision2 == 2:  # move down
-                self.game.paddles["right"].movement(False, True)
+                # Decisions
+                decision = output.index(max(output))
+                if decision == 0:  # don't move
+                    genome.fitness -= 0.1  # we want to discourage this
+                elif decision == 1:  # move up
+                    self.game.paddles[side].movement(True, False)
+                elif decision == 2:  # move down
+                    self.game.paddles[side].movement(False, True)
 
             # Run game
             game_info = self.game.loop()
@@ -132,13 +126,14 @@ def run_neat(config):
     # population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-1")
     population = neat.Population(config)
     stats = neat.StatisticsReporter()
+    num_generations = 250
 
     population.add_reporter(neat.StdOutReporter(True))
     population.add_reporter(stats)
     population.add_reporter(neat.Checkpointer(1))
 
     # Dump the best to a pickle file
-    winner = population.run(eval_genomes, 250)
+    winner = population.run(eval_genomes, num_generations)
     with open("best.pickle", "wb") as pickle_file:
         pickle.dump(winner, pickle_file)
 
