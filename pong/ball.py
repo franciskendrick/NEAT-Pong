@@ -16,7 +16,7 @@ class Ball:
     original_y = (window.rect.h // 2 - height // 2)
 
     # Movement
-    max_vel = 5
+    max_vel = 5 * 5
 
     # Initialize -------------------------------------------------- #
     def __init__(self):
@@ -41,13 +41,13 @@ class Ball:
         self.edge_collisions()
 
     def movement(self):
-        self.rect.x += self.x_vel
-        self.rect.y += self.y_vel
+        self.rect.x += self.x_vel * window.delta_time
+        self.rect.y += self.y_vel * window.delta_time
 
     def edge_collisions(self):
         handle_rect = self.rect.copy()
-        handle_rect.x += self.x_vel
-        handle_rect.y += self.y_vel
+        handle_rect.x += self.x_vel * window.delta_time
+        handle_rect.y += self.y_vel * window.delta_time
         if handle_rect.bottom >= window.playable_rect.bottom:
             # Update y velocity
             self.y_vel *= -1

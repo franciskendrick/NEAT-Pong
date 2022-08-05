@@ -1,4 +1,5 @@
 from pong import Game
+from pong import window
 import pygame
 import pickle
 import neat
@@ -16,6 +17,9 @@ class PongGame:
         # Loop
         run = True
         while run:
+            # Update delta time
+            window.update_deltatime(0.2)
+
             # Event loop
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -43,8 +47,10 @@ class PongGame:
 
             game_info = self.game.loop()
             self.game.draw()
-            self.game.update_clock()
             pygame.display.update()
+            
+            framerate = window.framerate * 5
+            self.game.clock.tick(framerate)
 
             print(game_info.score["left"], game_info.score["right"])
 
@@ -58,36 +64,18 @@ class PongGame:
         # Loop
         run = True
         while run:
+            # Update delta time
+            window.update_deltatime(using=False)
+
             # Event loop
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     return True
 
-            paddles = self.game.paddles
-            ball = self.game.ball
-
-            sides = ["left", "right"]
+            # Paddle movement
             nets = [net1, net2]
             genomes = [genome1, genome2]
-            for side, net, genome in zip(sides, nets, genomes):
-                # Get inputs
-                input = (
-                    paddles[side].rect.y,  # Y coordinate of the paddle
-                    ball.rect.y,  # Y coordinate of the ball
-                    abs(paddles[side].rect.x - ball.rect.x)  # Distance in the X coordinate between the ball and the paddle
-                )
-
-                # Get output
-                output = net.activate(input)
-
-                # Decisions
-                decision = output.index(max(output))
-                if decision == 0:  # don't move
-                    genome.fitness -= 0.1  # we want to discourage this
-                elif decision == 1:  # move up
-                    self.game.paddles[side].movement(True, False)
-                elif decision == 2:  # move down
-                    self.game.paddles[side].movement(False, True)
+            self.paddle_movement(nets, genomes)
 
             # Run game
             game_info = self.game.loop()
@@ -101,6 +89,32 @@ class PongGame:
                 run = False
 
         return False
+
+    def paddle_movement(self, nets, genomes):
+        paddles = self.game.paddles
+        ball = self.game.ball
+
+        # Paddle movement
+        sides = ["left", "right"]
+        for side, net, genome in zip(sides, nets, genomes):
+            # Get inputs
+            input = (
+                paddles[side].rect.y,  # Y coordinate of the paddle
+                ball.rect.y,  # Y coordinate of the ball
+                abs(paddles[side].rect.x - ball.rect.x)  # Distance in the X coordinate between the ball and the paddle
+            )
+
+            # Get output
+            output = net.activate(input)
+
+            # Decisions
+            decision = output.index(max(output))
+            if decision == 0:  # don't move
+                pass
+            elif decision == 1:  # move up
+                self.game.paddles[side].movement(True, False)
+            elif decision == 2:  # move down
+                self.game.paddles[side].movement(False, True)
 
     def calculate_fitness(self, genome1, genome2, game_info):
         genome1.fitness += game_info.hits["left"]
@@ -119,14 +133,14 @@ def eval_genomes(genomes, config):
             game = PongGame()
             force_quit = game.train_ai(genome1, genome2, config)
             if force_quit:
-                quit()
+                return
 
 
 def run_neat(config):
-    # population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-1")
+    # population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-24")
     population = neat.Population(config)
     stats = neat.StatisticsReporter()
-    num_generations = 250
+    num_generations = 1
 
     population.add_reporter(neat.StdOutReporter(True))
     population.add_reporter(stats)
@@ -139,7 +153,7 @@ def run_neat(config):
 
 
 def test_ai(config):
-    with open("best.pickle", "wb") as pickle_file:
+    with open("best.pickle", "rb") as pickle_file:
         winner = pickle.load(pickle_file)
 
     game = PongGame()

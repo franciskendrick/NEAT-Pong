@@ -86,6 +86,3 @@ class Game:
             self.hits, self.score)
 
         return game_info
-
-    def update_clock(self):
-        self.clock.tick(window.framerate)

@@ -11,9 +11,9 @@ class Paddle:
 
     # Movement
     sens_to_vel_switchcase = {
-        "low": 2,
-        "normal": 4,
-        "high": 6
+        "low": 2 * 5,
+        "normal": 4 * 5,
+        "high": 6 * 5
     }
 
     # Initialize -------------------------------------------------- #
@@ -32,19 +32,19 @@ class Paddle:
         if up:
             # Get a hitbox handle
             handle_hitbox = self.rect.copy()
-            handle_hitbox.y -= self.vel 
+            handle_hitbox.y -= self.vel * window.delta_time
             # Check for playable rectangle and hitbox collision
             if window.playable_rect.top < handle_hitbox.top:
-                self.rect.y -= self.vel 
+                self.rect.y -= self.vel * window.delta_time
 
         # Down movement
         if down: 
             # Get a hitbox handle
             handle_hitbox = self.rect.copy()
-            handle_hitbox.y += self.vel 
+            handle_hitbox.y += self.vel * window.delta_time
             # Check for playable rectangle and hitbox collision
             if window.playable_rect.bottom > handle_hitbox.bottom:
-                self.rect.y += self.vel
+                self.rect.y += self.vel * window.delta_time
 
     # Functions --------------------------------------------------- #
     def update_sensitivity(self, sensitivity):
