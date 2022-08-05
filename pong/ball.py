@@ -16,7 +16,7 @@ class Ball:
     original_y = (window.rect.h // 2 - height // 2)
 
     # Movement
-    max_vel = 5 * 5
+    max_vel = 5
 
     # Initialize -------------------------------------------------- #
     def __init__(self):
@@ -37,17 +37,19 @@ class Ball:
     # Update ------------------------------------------------------ #
     def update(self, paddle, hits):
         self.movement()
-        self.paddle_collisions(paddle, hits)
+        (hit_by, difference_in_y) = self.paddle_collisions(paddle, hits)
         self.edge_collisions()
 
+        return hit_by, difference_in_y
+
     def movement(self):
-        self.rect.x += self.x_vel * window.delta_time
-        self.rect.y += self.y_vel * window.delta_time
+        self.rect.x += self.x_vel
+        self.rect.y += self.y_vel
 
     def edge_collisions(self):
         handle_rect = self.rect.copy()
-        handle_rect.x += self.x_vel * window.delta_time
-        handle_rect.y += self.y_vel * window.delta_time
+        handle_rect.x += self.x_vel
+        handle_rect.y += self.y_vel
         if handle_rect.bottom >= window.playable_rect.bottom:
             # Update y velocity
             self.y_vel *= -1
@@ -56,10 +58,13 @@ class Ball:
             self.y_vel *= -1
 
     def paddle_collisions(self, paddles, hits):
-        if self.x_vel < 0:
+        if self.x_vel < 0:  # ball is going LEFT
             if (self.rect.centery >= paddles["left"].rect.top) and ( 
                 self.rect.centery <= paddles["left"].rect.bottom) and (
                 self.rect.left <= paddles["left"].rect.right):
+
+                # Get who hit the ball
+                hit_by = "left"
             
                 # Update x velocity
                 self.x_vel *= -1
@@ -72,11 +77,17 @@ class Ball:
 
                 # Update hits
                 hits["left"] += 1
-        else:
+
+                # Return
+                return (hit_by, difference_in_y)
+        else:  # ball is going RIGHT
             if (self.rect.centery >= paddles["right"].rect.top) and (
                 self.rect.centery <= paddles["right"].rect.bottom) and (
                 self.rect.right >= paddles["right"].rect.left):
             
+                # Get who hit the ball
+                hit_by = "left"
+
                 # Update x velocity
                 self.x_vel *= -1
 
@@ -88,6 +99,11 @@ class Ball:
 
                 # Update hits
                 hits["right"] += 1
+
+                # Return
+                return (hit_by, difference_in_y)
+
+        return (None, None)
 
     # Functions --------------------------------------------------- #
     def get_random_angle(self, min_angle, max_angle, excluded):

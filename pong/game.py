@@ -7,9 +7,10 @@ pygame.init()
 
 
 class GameInformation:
-    def __init__(self, hits, score):
+    def __init__(self, hits, score, sum_difference_in_y):
         self.hits = hits
         self.score = score
+        self.sum_difference_in_y = sum_difference_in_y
 
 
 class Game:
@@ -49,6 +50,10 @@ class Game:
             "left": 0,
             "right": 0
         }
+        self.sum_difference_in_y = {
+            "left": 0,
+            "right": 0
+        }
 
     def draw(self):
         self.display.fill(window.white)
@@ -71,7 +76,10 @@ class Game:
         self.paddles["right"].movement(
             keys[pygame.K_UP], keys[pygame.K_DOWN])
 
-        self.ball.update(self.paddles, self.hits)
+        side, difference_in_y = self.ball.update(self.paddles, self.hits)
+        if (side, difference_in_y) != (None, None):
+            difference_in_y = abs(difference_in_y)
+            self.sum_difference_in_y[side] += abs(difference_in_y)
 
         # Win check
         if self.ball.rect.left <= window.playable_rect.left:
@@ -83,6 +91,6 @@ class Game:
 
         # Game information
         game_info = GameInformation(
-            self.hits, self.score)
+            self.hits, self.score, self.sum_difference_in_y)
 
         return game_info

@@ -17,9 +17,6 @@ class PongGame:
         # Loop
         run = True
         while run:
-            # Update delta time
-            window.update_deltatime(0.2)
-
             # Event loop
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -49,8 +46,7 @@ class PongGame:
             self.game.draw()
             pygame.display.update()
             
-            framerate = window.framerate * 5
-            self.game.clock.tick(framerate)
+            self.game.clock.tick(window.framerate)
 
             print(game_info.score["left"], game_info.score["right"])
 
@@ -64,9 +60,6 @@ class PongGame:
         # Loop
         run = True
         while run:
-            # Update delta time
-            window.update_deltatime(using=False)
-
             # Event loop
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -110,15 +103,15 @@ class PongGame:
             # Decisions
             decision = output.index(max(output))
             if decision == 0:  # don't move
-                pass
-            elif decision == 1:  # move up
+                genome.fitness -= 0.5  # we want to discourage this
+            if decision == 1:  # move up
                 self.game.paddles[side].movement(True, False)
             elif decision == 2:  # move down
                 self.game.paddles[side].movement(False, True)
 
     def calculate_fitness(self, genome1, genome2, game_info):
-        genome1.fitness += game_info.hits["left"]
-        genome2.fitness += game_info.hits["right"]
+        genome1.fitness += game_info.sum_difference_in_y["left"]
+        genome2.fitness += game_info.sum_difference_in_y["right"]
 
 
 def eval_genomes(genomes, config):
@@ -133,14 +126,14 @@ def eval_genomes(genomes, config):
             game = PongGame()
             force_quit = game.train_ai(genome1, genome2, config)
             if force_quit:
-                return
+                quit()
 
 
 def run_neat(config):
     # population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-24")
     population = neat.Population(config)
     stats = neat.StatisticsReporter()
-    num_generations = 1
+    num_generations = 10
 
     population.add_reporter(neat.StdOutReporter(True))
     population.add_reporter(stats)
