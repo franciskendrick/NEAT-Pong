@@ -76,8 +76,17 @@ class PongGame:
             pygame.display.update()
 
             # Break loop after a paddle has scored
-            if game_info.score["left"] >= 1 or game_info.score["right"] >= 1 or (
-                    game_info.hits["left"] > 50):
+            if game_info.score["left"] >= 1:
+                genome2.fitness -= 25
+                self.calculate_fitness(genome1, genome2, game_info)
+                run = False
+            elif game_info.score["right"] >= 1:
+                genome1.fitness -= 25
+                self.calculate_fitness(genome1, genome2, game_info)
+                run = False
+            
+            # Break loop after hits exceeded 50
+            if game_info.hits["left"] > 50:
                 self.calculate_fitness(genome1, genome2, game_info)
                 run = False
 
@@ -126,7 +135,7 @@ def eval_genomes(genomes, config):
             game = PongGame()
             force_quit = game.train_ai(genome1, genome2, config)
             if force_quit:
-                quit()
+                return
 
 
 def run_neat(config):
