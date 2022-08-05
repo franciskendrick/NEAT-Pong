@@ -18,11 +18,9 @@ class Game:
         int(window.rect.width * window.enlarge),
         int(window.rect.height * window.enlarge))
 
-    def __init__(self):
-        # Initialize window
-        self.win = pygame.display.set_mode(self.win_size, 32)
-        self.display = pygame.Surface(window.rect.size)
-        self.clock = pygame.time.Clock()
+    def __init__(self, color):
+        # Initialize color
+        self.color = color
 
         # Initialize paddle
         self.paddles = {
@@ -55,20 +53,16 @@ class Game:
             "right": 0
         }
 
-    def draw(self):
-        self.display.fill(window.white)
-        window.draw_playablesurface(self.display)
-        window.draw_centerline(self.display)
-
+    def draw_entities(self, win, display):
         for paddle in self.paddles.values():
-            paddle.draw(self.display)
-        self.ball.draw(self.display)
-        
-        resized_display = pygame.transform.scale(
-            self.display, self.win_size)
-        self.win.blit(resized_display, (0, 0))
+            paddle.draw(display, self.color)
+        self.ball.draw(display, self.color)
 
-    def loop(self):
+        resized_display = pygame.transform.scale(
+            display, self.win_size)
+        win.blit(resized_display, (0, 0))
+        
+    def paddle_movement(self):
         # Update
         keys = pygame.key.get_pressed()
         self.paddles["left"].movement(
@@ -76,6 +70,7 @@ class Game:
         self.paddles["right"].movement(
             keys[pygame.K_UP], keys[pygame.K_DOWN])
 
+    def loop(self):
         side, difference_in_y = self.ball.update(self.paddles, self.hits)
         if (side, difference_in_y) != (None, None):
             difference_in_y = abs(difference_in_y)

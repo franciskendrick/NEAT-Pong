@@ -31,8 +31,8 @@ class Ball:
         self.y_vel = math.sin(angle) * self.max_vel
 
     # Draw -------------------------------------------------------- #
-    def draw(self, display):
-        pygame.draw.rect(display, window.white, self.rect)
+    def draw(self, display, color):
+        pygame.draw.rect(display, color, self.rect)
 
     # Update ------------------------------------------------------ #
     def update(self, paddle, hits):
@@ -43,13 +43,13 @@ class Ball:
         return hit_by, difference_in_y
 
     def movement(self):
-        self.rect.x += self.x_vel
-        self.rect.y += self.y_vel
+        self.rect.x += self.x_vel * window.delta_time
+        self.rect.y += self.y_vel * window.delta_time
 
     def edge_collisions(self):
         handle_rect = self.rect.copy()
-        handle_rect.x += self.x_vel
-        handle_rect.y += self.y_vel
+        handle_rect.x += self.x_vel * window.delta_time
+        handle_rect.y += self.y_vel * window.delta_time
         if handle_rect.bottom >= window.playable_rect.bottom:
             # Update y velocity
             self.y_vel *= -1
@@ -58,10 +58,14 @@ class Ball:
             self.y_vel *= -1
 
     def paddle_collisions(self, paddles, hits):
+        handle_rect = self.rect.copy()
+        handle_rect.x += self.x_vel * window.delta_time
+        handle_rect.y += self.y_vel * window.delta_time
+
         if self.x_vel < 0:  # ball is going LEFT
-            if (self.rect.centery >= paddles["left"].rect.top) and ( 
-                self.rect.centery <= paddles["left"].rect.bottom) and (
-                self.rect.left <= paddles["left"].rect.right):
+            if (handle_rect.centery >= paddles["left"].rect.top) and ( 
+                handle_rect.centery <= paddles["left"].rect.bottom) and (
+                handle_rect.left <= paddles["left"].rect.right):
 
                 # Get who hit the ball
                 hit_by = "left"
@@ -70,7 +74,7 @@ class Ball:
                 self.x_vel *= -1
 
                 # Update y velocity
-                difference_in_y = paddles["left"].rect.centery - self.rect.centery
+                difference_in_y = paddles["left"].rect.centery - handle_rect.centery
                 reduction_factor = (paddles["left"].rect.height / 2) / self.max_vel
                 new_y_vel = difference_in_y / reduction_factor
                 self.y_vel = -1 * new_y_vel
@@ -81,9 +85,9 @@ class Ball:
                 # Return
                 return (hit_by, difference_in_y)
         else:  # ball is going RIGHT
-            if (self.rect.centery >= paddles["right"].rect.top) and (
-                self.rect.centery <= paddles["right"].rect.bottom) and (
-                self.rect.right >= paddles["right"].rect.left):
+            if (handle_rect.centery >= paddles["right"].rect.top) and (
+                handle_rect.centery <= paddles["right"].rect.bottom) and (
+                handle_rect.right >= paddles["right"].rect.left):
             
                 # Get who hit the ball
                 hit_by = "left"
@@ -92,7 +96,7 @@ class Ball:
                 self.x_vel *= -1
 
                 # Update y velocity
-                difference_in_y = paddles["right"].rect.centery - self.rect.centery
+                difference_in_y = paddles["right"].rect.centery - handle_rect.centery
                 reduction_factor = (paddles["right"].rect.height / 2) / self.max_vel
                 new_y_vel = difference_in_y / reduction_factor
                 self.y_vel = -1 * new_y_vel

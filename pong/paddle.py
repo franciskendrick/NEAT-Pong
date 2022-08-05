@@ -23,8 +23,8 @@ class Paddle:
             *pos, self.width, self.height)
 
     # Draw -------------------------------------------------------- #
-    def draw(self, display):
-        pygame.draw.rect(display, window.white, self.rect)
+    def draw(self, display, color):
+        pygame.draw.rect(display, color, self.rect)
 
     # Update ------------------------------------------------------ #
     def movement(self, up, down):
@@ -32,19 +32,19 @@ class Paddle:
         if up:
             # Get a hitbox handle
             handle_hitbox = self.rect.copy()
-            handle_hitbox.y -= self.vel
+            handle_hitbox.y -= self.vel * window.delta_time
             # Check for playable rectangle and hitbox collision
             if window.playable_rect.top < handle_hitbox.top:
-                self.rect.y -= self.vel
+                self.rect.y -= self.vel * window.delta_time
 
         # Down movement
         if down: 
             # Get a hitbox handle
             handle_hitbox = self.rect.copy()
-            handle_hitbox.y += self.vel
+            handle_hitbox.y += self.vel * window.delta_time
             # Check for playable rectangle and hitbox collision
             if window.playable_rect.bottom > handle_hitbox.bottom:
-                self.rect.y += self.vel
+                self.rect.y += self.vel * window.delta_time
 
     # Functions --------------------------------------------------- #
     def update_sensitivity(self, sensitivity):

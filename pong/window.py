@@ -16,7 +16,7 @@ resources_path = os.path.abspath(
 class Window:
     # Window
     rect = pygame.Rect(0, 0, 640, 360)
-    enlarge = 2
+    enlarge = 1
     # enlarge = max(
     #     pygame.display.Info().current_w / rect.width,
     #     pygame.display.Info().current_h / rect.height)
@@ -33,7 +33,13 @@ class Window:
     white = (255, 255, 255)
 
     # Framerate
-    framerate = 60
+    framerate = 90
+
+    # Initialize -------------------------------------------------- #
+    def __init__(self):
+        # Framerate
+        self.last_time = time.perf_counter()
+        self.update_deltatime()
 
     # Draw -------------------------------------------------------- #
     def draw_playablesurface(self, display):
@@ -62,6 +68,11 @@ class Window:
         # Dump handle options settings to the JSON file
         with open(f"{resources_path}/options_settings.json", "w") as json_file:
             json.dump(handle_optionssettings, json_file)
+
+    def update_deltatime(self):
+        self.delta_time = time.perf_counter() - self.last_time
+        self.delta_time *= 90
+        self.last_time = time.perf_counter()
 
 
 window = Window()
