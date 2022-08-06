@@ -57,6 +57,7 @@ class PongGame:
 
             # Game loop
             (game_info, _) = game.loop()
+
             # Draw
             self.display.fill(window.white)
             window.draw_playablesurface(self.display)
@@ -119,10 +120,8 @@ class PongGame:
 
                     # End training after a genome has scored
                     if game_info.score["left"] >= 1:
-                        # genome2.fitness -= 25  # we want to discourage losing
                         ground["dead"] = True
                     elif game_info.score["right"] >= 1:
-                        # genome1.fitness -= 25  # we want to discourage losing
                         ground["dead"] = True
                     
                     # End training after hits exceeded 50
@@ -216,10 +215,10 @@ def eval_genomes(genomes, config):
 
 
 def run_neat(config):
-    population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-2")
-    # population = neat.Population(config)
+    # population = neat.Checkpointer.restore_checkpoint("test3/neat-checkpoint-14")
+    population = neat.Population(config)
     stats = neat.StatisticsReporter()
-    num_generations = 3
+    num_generations = 18
 
     population.add_reporter(neat.StdOutReporter(True))
     population.add_reporter(stats)
@@ -265,4 +264,4 @@ if __name__ == "__main__":
         colors.reverse
 
     run_neat(config)
-    # test_ai(config)
+    # test_ai(config) 

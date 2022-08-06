@@ -34,7 +34,7 @@ class Paddle:
             handle_hitbox = self.rect.copy()
             handle_hitbox.y -= self.vel * window.delta_time
             # Check for playable rectangle and hitbox collision
-            if window.playable_rect.top < handle_hitbox.top:
+            if window.playable_rect.top <= handle_hitbox.top:
                 self.rect.y -= self.vel * window.delta_time
 
         # Down movement
@@ -43,7 +43,7 @@ class Paddle:
             handle_hitbox = self.rect.copy()
             handle_hitbox.y += self.vel * window.delta_time
             # Check for playable rectangle and hitbox collision
-            if window.playable_rect.bottom > handle_hitbox.bottom:
+            if window.playable_rect.bottom >= handle_hitbox.bottom:
                 self.rect.y += self.vel * window.delta_time
 
     def training_movement(self, up, down, genome):
@@ -53,8 +53,9 @@ class Paddle:
             handle_hitbox = self.rect.copy()
             handle_hitbox.y -= self.vel * window.delta_time
             # Check for playable rectangle and hitbox collision
-            if window.playable_rect.top < handle_hitbox.top:
+            if window.playable_rect.top <= handle_hitbox.top:
                 self.rect.y -= self.vel * window.delta_time
+            else:
                 genome.fitness -= 0.05  # we want to discourage bumping into walls
 
         # Down movement
@@ -63,8 +64,9 @@ class Paddle:
             handle_hitbox = self.rect.copy()
             handle_hitbox.y += self.vel * window.delta_time
             # Check for playable rectangle and hitbox collision
-            if window.playable_rect.bottom > handle_hitbox.bottom:
+            if window.playable_rect.bottom >= handle_hitbox.bottom:
                 self.rect.y += self.vel * window.delta_time
+            else:
                 genome.fitness -= 0.05  # we want to discourage bumping into walls
 
     # Functions --------------------------------------------------- #
