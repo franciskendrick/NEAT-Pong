@@ -7,10 +7,9 @@ pygame.init()
 
 
 class GameInformation:
-    def __init__(self, hits, score, sum_difference_in_y):
+    def __init__(self, hits, score):
         self.hits = hits
         self.score = score
-        self.sum_difference_in_y = sum_difference_in_y
 
 
 class Game:
@@ -48,10 +47,6 @@ class Game:
             "left": 0,
             "right": 0
         }
-        self.sum_difference_in_y = {
-            "left": 0,
-            "right": 0
-        }
 
     def draw_entities(self, win, display):
         for paddle in self.paddles.values():
@@ -61,20 +56,11 @@ class Game:
         resized_display = pygame.transform.scale(
             display, self.win_size)
         win.blit(resized_display, (0, 0))
-        
-    def paddle_movement(self):
-        # Update
-        keys = pygame.key.get_pressed()
-        self.paddles["left"].movement(
-            keys[pygame.K_w], keys[pygame.K_s])
-        self.paddles["right"].movement(
-            keys[pygame.K_UP], keys[pygame.K_DOWN])
 
     def loop(self):
         side, difference_in_y = self.ball.update(self.paddles, self.hits)
         if (side, difference_in_y) != (None, None):
             difference_in_y = abs(difference_in_y)
-            self.sum_difference_in_y[side] += abs(difference_in_y)
 
         # Win check
         if self.ball.rect.left <= window.playable_rect.left:
@@ -86,6 +72,6 @@ class Game:
 
         # Game information
         game_info = GameInformation(
-            self.hits, self.score, self.sum_difference_in_y)
+            self.hits, self.score)
 
-        return game_info
+        return [game_info, (side, difference_in_y)]

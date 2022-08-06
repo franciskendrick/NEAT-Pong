@@ -33,7 +33,8 @@ class Window:
     white = (255, 255, 255)
 
     # Framerate
-    framerate = 90
+    testing_framerate = 60
+    training_framerate = 90
 
     # Initialize -------------------------------------------------- #
     def __init__(self):
@@ -69,9 +70,12 @@ class Window:
         with open(f"{resources_path}/options_settings.json", "w") as json_file:
             json.dump(handle_optionssettings, json_file)
 
-    def update_deltatime(self):
+    def update_deltatime(self, training=True):
         self.delta_time = time.perf_counter() - self.last_time
-        self.delta_time *= 90
+        if training:
+            self.delta_time *= self.training_framerate
+        else:
+            self.delta_time *= self.testing_framerate
         self.last_time = time.perf_counter()
 
 

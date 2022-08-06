@@ -1,5 +1,6 @@
 from pong import Game
 from pong import window
+from datetime import datetime
 import pygame
 import json
 import sys
@@ -14,19 +15,28 @@ class PongGame:
         self.display = display
         self.clock = clock
 
+    # Testing ----------------------------------------------------- #
     def test_ai(self, genome, config):
         net = neat.nn.FeedForwardNetwork.create(genome, config)
+        game = Game([255, 255, 255])
 
         # Loop
         run = True
         while run:
+            window.update_deltatime(False)
+
             # Event loop
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     run = False
 
-            paddles = self.game.paddles
-            ball = self.game.ball
+            paddles = game.paddles
+            ball = game.ball
+
+            # Player movement
+            keys = pygame.key.get_pressed()
+            paddles["left"].testing_movement(
+                keys[pygame.K_w], keys[pygame.K_s])
 
             # Get input
             inputs = (
@@ -41,22 +51,30 @@ class PongGame:
             # Decisions
             decision = output.index(max(output))
             if decision == 1:  # move up
-                self.game.paddles["right"].movement(True, False)
+                game.paddles["right"].testing_movement(True, False)
             elif decision == 2:  # move down
-                self.game.paddles["right"].movement(False, True)
+                game.paddles["right"].testing_movement(False, True)
 
-            game_info = self.game.loop()
-            self.game.draw_background()
-            self.game.draw_entities()
-            pygame.display.update()
+            # Game loop
+            (game_info, _) = game.loop()
+            # Draw
+            self.display.fill(window.white)
+            window.draw_playablesurface(self.display)
+            window.draw_centerline(self.display)
+
+            game.draw_entities(self.win, self.display)
+
+            pygame.display.update() 
+
             
-            self.game.clock.tick(window.framerate)
+            self.clock.tick(window.testing_framerate)
 
             print(game_info.score["left"], game_info.score["right"])
 
         pygame.quit()
         sys.exit()
 
+    # Training ---------------------------------------------------- #
     def train_ai(self, genome1, other_genomes, config):
         grounds = []
         net1 = neat.nn.FeedForwardNetwork.create(genome1, config)
@@ -82,7 +100,7 @@ class PongGame:
                     return True
 
             # Train
-            for idx, ground in enumerate(grounds):
+            for ground in grounds:
                 if not ground["dead"]:
                     # Paddle movement
                     genomes = [genome1, genome2]
@@ -90,42 +108,32 @@ class PongGame:
                         ground["nets"], genomes, ground["game"])
 
                     # Run game
-                    game_info = ground["game"].loop()
+                    (game_info, (side, difference_in_y)) = ground["game"].loop()
 
-                    # End training loop after a genomes has scored
+                    # Encourage the higher the difference in Y between paddle and ball collision
+                    if (side, difference_in_y) != (None, None):
+                        if side == "left":
+                            genome1.fitness += difference_in_y
+                        else:
+                            genome2.fitness += difference_in_y
+
+                    # End training after a genome has scored
                     if game_info.score["left"] >= 1:
-                        genome2.fitness -= 25
-                        self.calculate_fitness(genome1, genome2, game_info)
+                        # genome2.fitness -= 25  # we want to discourage losing
                         ground["dead"] = True
                     elif game_info.score["right"] >= 1:
-                        genome1.fitness -= 25
-                        self.calculate_fitness(genome1, genome2, game_info)
+                        # genome1.fitness -= 25  # we want to discourage losing
                         ground["dead"] = True
                     
                     # End training after hits exceeded 50
                     if game_info.hits["left"] > 50:
-                        self.calculate_fitness(genome1, genome2, game_info)
-                        grounds[idx]["dead"] = True
+                        ground["dead"] = True
 
-
-
-            # Draw background
-            self.display.fill(window.white)
-            window.draw_playablesurface(self.display)
-            window.draw_centerline(self.display)
-
-            # Draw entities
-            for ground in grounds:
-                if not ground["dead"]:
-                    ground["game"].draw_entities(self.win, self.display)
-                
-            # Update display
-            pygame.display.update()
+            # Draw
+            self.draw(grounds)
 
             # Update clock
-            self.clock.tick(window.framerate)
-
-
+            self.clock.tick(window.training_framerate)
 
             # Get number or dead genomes
             num_of_dead = 0
@@ -159,15 +167,25 @@ class PongGame:
             # Decisions
             decision = output.index(max(output))
             if decision == 0:  # don't move
-                genome.fitness -= 0.05  # we want to discourage this
+                genome.fitness -= 0.025  # we want to discourage not moving
             if decision == 1:  # move up
-                game.paddles[side].movement(True, False)
+                game.paddles[side].training_movement(True, False, genome)
             elif decision == 2:  # move down
-                game.paddles[side].movement(False, True)
+                game.paddles[side].training_movement(False, True, genome)
 
-    def calculate_fitness(self, genome1, genome2, game_info):
-        genome1.fitness += game_info.sum_difference_in_y["left"]
-        genome2.fitness += game_info.sum_difference_in_y["right"]
+    def draw(self, grounds):
+        # Draw background
+        self.display.fill(window.white)
+        window.draw_playablesurface(self.display)
+        window.draw_centerline(self.display)
+
+        # Draw entities
+        for ground in grounds:
+            if not ground["dead"]:
+                ground["game"].draw_entities(self.win, self.display)
+            
+        # Update display
+        pygame.display.update()
 
 
 def eval_genomes(genomes, config):
@@ -175,6 +193,9 @@ def eval_genomes(genomes, config):
     win = pygame.display.set_mode(Game.win_size, 32)
     display = pygame.Surface(window.rect.size)
     clock = pygame.time.Clock()
+
+    # Print time
+    print(datetime.now())
     
     # Run each genome against each other one time to determine the fitness
     for idx, (_, genome1) in enumerate(genomes):
@@ -195,10 +216,10 @@ def eval_genomes(genomes, config):
 
 
 def run_neat(config):
-    # population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-24")
-    population = neat.Population(config)
+    population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-2")
+    # population = neat.Population(config)
     stats = neat.StatisticsReporter()
-    num_generations = 10
+    num_generations = 3
 
     population.add_reporter(neat.StdOutReporter(True))
     population.add_reporter(stats)
@@ -214,7 +235,13 @@ def test_ai(config):
     with open("best.pickle", "rb") as pickle_file:
         winner = pickle.load(pickle_file)
 
-    game = PongGame()
+    # Initialize window
+    win = pygame.display.set_mode(Game.win_size, 32)
+    display = pygame.Surface(window.rect.size)
+    clock = pygame.time.Clock()
+
+    # Test ai
+    game = PongGame(win, display, clock)
     game.test_ai(winner, config)
 
 
@@ -235,6 +262,7 @@ if __name__ == "__main__":
     json_path = os.path.join(local_dir, "colors.json")
     with open(json_path) as json_file:
         colors = json.load(json_file)
+        colors.reverse
 
     run_neat(config)
     # test_ai(config)

@@ -51,9 +51,12 @@ class Ball:
         handle_rect.x += self.x_vel * window.delta_time
         handle_rect.y += self.y_vel * window.delta_time
         if handle_rect.bottom >= window.playable_rect.bottom:
+            self.rect.bottom = window.playable_rect.bottom
             # Update y velocity
             self.y_vel *= -1
         elif handle_rect.top <= window.playable_rect.top:
+            self.rect.top = window.playable_rect.top
+
             # Update y velocity
             self.y_vel *= -1
 

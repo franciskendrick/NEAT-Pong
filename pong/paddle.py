@@ -27,7 +27,7 @@ class Paddle:
         pygame.draw.rect(display, color, self.rect)
 
     # Update ------------------------------------------------------ #
-    def movement(self, up, down):
+    def testing_movement(self, up, down):
         # Up movement
         if up:
             # Get a hitbox handle
@@ -45,6 +45,27 @@ class Paddle:
             # Check for playable rectangle and hitbox collision
             if window.playable_rect.bottom > handle_hitbox.bottom:
                 self.rect.y += self.vel * window.delta_time
+
+    def training_movement(self, up, down, genome):
+        # Up movement
+        if up:
+            # Get a hitbox handle
+            handle_hitbox = self.rect.copy()
+            handle_hitbox.y -= self.vel * window.delta_time
+            # Check for playable rectangle and hitbox collision
+            if window.playable_rect.top < handle_hitbox.top:
+                self.rect.y -= self.vel * window.delta_time
+                genome.fitness -= 0.05  # we want to discourage bumping into walls
+
+        # Down movement
+        if down: 
+            # Get a hitbox handle
+            handle_hitbox = self.rect.copy()
+            handle_hitbox.y += self.vel * window.delta_time
+            # Check for playable rectangle and hitbox collision
+            if window.playable_rect.bottom > handle_hitbox.bottom:
+                self.rect.y += self.vel * window.delta_time
+                genome.fitness -= 0.05  # we want to discourage bumping into walls
 
     # Functions --------------------------------------------------- #
     def update_sensitivity(self, sensitivity):
