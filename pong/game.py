@@ -17,26 +17,26 @@ class Game:
         int(window.rect.width * window.enlarge),
         int(window.rect.height * window.enlarge))
 
-    def __init__(self, color):
+    paddle_positions = {
+        "left": [10, (window.rect.height // 2 - Paddle.height // 2)],
+        "right": [
+            (window.rect.width - 10 - Paddle.width), 
+            (window.rect.height // 2 - Paddle.height // 2)
+        ]
+    }
+
+    def __init__(self, color, training=True):
         # Initialize color
         self.color = color
 
         # Initialize paddle
         self.paddles = {
-            "left": Paddle(
-                "normal", 
-                [10, (window.rect.height // 2 - Paddle.height // 2)]
-            ),
-            "right": Paddle(
-                "normal", [
-                    (window.rect.width - 10 - Paddle.width), 
-                    (window.rect.height // 2 - Paddle.height // 2)
-                ]
-            )
+            "left": Paddle("normal", self.paddle_positions["left"]),
+            "right": Paddle("normal", self.paddle_positions["right"])
         }
         
         # Initialize ball
-        self.ball = Ball()
+        self.ball = Ball(training)
 
         # Initialize game information
         self.hits = {
@@ -57,21 +57,19 @@ class Game:
             display, self.win_size)
         win.blit(resized_display, (0, 0))
 
-    def loop(self):
-        side, difference_in_y = self.ball.update(self.paddles, self.hits)
-        if (side, difference_in_y) != (None, None):
-            difference_in_y = abs(difference_in_y)
+    def loop(self, genomes, training=True):
+        self.ball.update(self.paddles, self.hits, genomes, training)
 
         # Win check
-        if self.ball.rect.left <= window.playable_rect.left:
-            self.score["left"] += 1
-            self.ball.round_reset()
-        elif self.ball.rect.right >= window.playable_rect.right:
+        if self.ball.rect.centerx <= window.playable_rect.left:
             self.score["right"] += 1
-            self.ball.round_reset()
+            self.ball.round_reset(training)
+        elif self.ball.rect.centerx >= window.playable_rect.right:
+            self.score["left"] += 1
+            self.ball.round_reset(training)
 
         # Game information
         game_info = GameInformation(
             self.hits, self.score)
 
-        return [game_info, (side, difference_in_y)]
+        return game_info

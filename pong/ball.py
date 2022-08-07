@@ -19,28 +19,30 @@ class Ball:
     max_vel = 5
 
     # Initialize -------------------------------------------------- #
-    def __init__(self):
+    def __init__(self, training=True):
         # Rectangle
         self.rect = pygame.Rect(
             self.original_x, self.original_y, 
             self.width, self.height)
 
         # Velocities
-        angle = self.get_random_angle(-50, 50, [0])
-        self.x_vel = abs(math.cos(angle) * self.max_vel) * random.choice([-1, 1])
-        self.y_vel = math.sin(angle) * self.max_vel
+        if training:
+            angle = self.get_random_angle(-50, 50, [0])
+            self.x_vel = abs(math.cos(angle) * self.max_vel) * random.choice([-1, 1])
+            self.y_vel = math.sin(angle) * self.max_vel
+        else:
+            self.x_vel = self.max_vel
+            self.y_vel = 0
 
     # Draw -------------------------------------------------------- #
     def draw(self, display, color):
         pygame.draw.rect(display, color, self.rect)
 
     # Update ------------------------------------------------------ #
-    def update(self, paddle, hits):
+    def update(self, paddle, hits, genomes, training):
         self.movement()
-        (hit_by, difference_in_y) = self.paddle_collisions(paddle, hits)
+        self.paddle_collisions(paddle, hits, genomes, training)
         self.edge_collisions()
-
-        return hit_by, difference_in_y
 
     def movement(self):
         self.rect.x += self.x_vel * window.delta_time
@@ -60,7 +62,7 @@ class Ball:
             # Update y velocity
             self.y_vel *= -1
 
-    def paddle_collisions(self, paddles, hits):
+    def paddle_collisions(self, paddles, hits, genomes, training):
         handle_rect = self.rect.copy()
         handle_rect.x += self.x_vel * window.delta_time
         handle_rect.y += self.y_vel * window.delta_time
@@ -70,9 +72,6 @@ class Ball:
                 handle_rect.centery <= paddles["left"].rect.bottom) and (
                 handle_rect.left <= paddles["left"].rect.right):
 
-                # Get who hit the ball
-                hit_by = "left"
-            
                 # Update x velocity
                 self.x_vel *= -1
 
@@ -82,19 +81,18 @@ class Ball:
                 new_y_vel = difference_in_y / reduction_factor
                 self.y_vel = -1 * new_y_vel
 
+                # Encourage the higher the difference in Y between paddle and ball collision
+                if training:
+                    genomes[0].fitness += abs(difference_in_y)
+
                 # Update hits
                 hits["left"] += 1
 
-                # Return
-                return (hit_by, difference_in_y)
         else:  # ball is going RIGHT
             if (handle_rect.centery >= paddles["right"].rect.top) and (
                 handle_rect.centery <= paddles["right"].rect.bottom) and (
                 handle_rect.right >= paddles["right"].rect.left):
             
-                # Get who hit the ball
-                hit_by = "left"
-
                 # Update x velocity
                 self.x_vel *= -1
 
@@ -107,10 +105,9 @@ class Ball:
                 # Update hits
                 hits["right"] += 1
 
-                # Return
-                return (hit_by, difference_in_y)
-
-        return (None, None)
+                # Encourage the higher the difference in Y between paddle and ball collision
+                if training:
+                    genomes[1].fitness += abs(difference_in_y)
 
     # Functions --------------------------------------------------- #
     def get_random_angle(self, min_angle, max_angle, excluded):
@@ -120,13 +117,17 @@ class Ball:
 
         return angle
 
-    def round_reset(self):
+    def round_reset(self, training=True):
         # Rectangle
         self.rect.x = self.original_x
         self.rect.y = self.original_y
 
         # Velocities
-        angle = self.get_random_angle(-50, 50, [0])
-        x_vel = abs(math.cos(angle) * self.max_vel)
-        self.x_vel = x_vel if self.x_vel > 0 else -x_vel
-        self.y_vel = math.sin(angle) * self.max_vel
+        if training:
+            angle = self.get_random_angle(-50, 50, [0])
+            x_vel = abs(math.cos(angle) * self.max_vel)
+            self.x_vel = x_vel if self.x_vel > 0 else -x_vel
+            self.y_vel = math.sin(angle) * self.max_vel
+        else:
+            self.x_vel = self.max_vel
+            self.y_vel = 0
