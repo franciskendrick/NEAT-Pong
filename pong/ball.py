@@ -1,3 +1,5 @@
+from hmac import new
+import re
 from pong import window
 import pygame
 import random
@@ -81,10 +83,12 @@ class Ball:
                 new_y_vel = difference_in_y / reduction_factor
                 self.y_vel = -1 * new_y_vel
 
-                # Encourage the higher the difference in Y between paddle and ball collision
+                # Add to the paddles fitness whenever the paddle has hit the ball 
+                # But only if the difference in Y is higher than 2
                 if training:
-                    genomes[0].fitness += abs(difference_in_y)
-
+                    if abs(difference_in_y) > 2:
+                        genomes[0].fitness += 1
+                
                 # Update hits
                 hits["left"] += 1
 
@@ -105,9 +109,11 @@ class Ball:
                 # Update hits
                 hits["right"] += 1
 
-                # Encourage the higher the difference in Y between paddle and ball collision
+                # Add to the paddles fitness whenever the paddle has hit the ball 
+                # But only if the difference in Y is higher than 2
                 if training:
-                    genomes[1].fitness += abs(difference_in_y)
+                    if abs(difference_in_y) > 2:
+                        genomes[1].fitness += 1
 
     # Functions --------------------------------------------------- #
     def get_random_angle(self, min_angle, max_angle, excluded):

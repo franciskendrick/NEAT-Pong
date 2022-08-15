@@ -32,7 +32,8 @@ class Game:
         # Initialize paddle
         self.paddles = {
             "left": Paddle("normal", self.paddle_positions["left"]),
-            "right": Paddle("normal", self.paddle_positions["right"])
+            # "left": Paddle("high", self.paddle_positions["left"]),
+            "right": Paddle("high", self.paddle_positions["right"])
         }
         
         # Initialize ball

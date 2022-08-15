@@ -16,10 +16,7 @@ resources_path = os.path.abspath(
 class Window:
     # Window
     rect = pygame.Rect(0, 0, 640, 360)
-    enlarge = 1
-    # enlarge = max(
-    #     pygame.display.Info().current_w / rect.width,
-    #     pygame.display.Info().current_h / rect.height)
+    enlarge = 2
 
     # Court
     playable_rect = pygame.Rect(

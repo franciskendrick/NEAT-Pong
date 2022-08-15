@@ -50,7 +50,7 @@ class PongGame:
             inputs = (
                 paddles["right"].rect.y,  # Y coordinate of the paddle
                 ball.rect.y,  # Y coordinate of the ball
-                abs(paddles["right"].rect.x - ball.rect.x),  # Distance in the X coordinate between the ball and the padle
+                abs(paddles["right"].rect.x - ball.rect.x),  # Distance in the X coordinate between the ball and the paddle
             )
 
             # Get output
@@ -66,14 +66,12 @@ class PongGame:
                 game.paddles["right"].testing_movement(False, True)
 
             # Game loop
-            game_info = game.loop(None, training=False)
+            game.loop(None, training=False)
 
             # Draw
             self.display.fill(window.white)
             window.draw_playablesurface(self.display)
             window.draw_centerline(self.display)
-
-            pygame.draw.rect(self.display, (255, 0, 0), self.middle_rect, 1)
 
             game.draw_entities(self.win, self.display)
 
@@ -81,8 +79,6 @@ class PongGame:
 
             # Update clock
             self.clock.tick(window.testing_framerate)
-
-            # print(game_info.score["left"], game_info.score["right"])
 
         pygame.quit()
         sys.exit()
@@ -167,9 +163,7 @@ class PongGame:
             # Decisions
             decision = output.index(max(output))
             if decision == 0:  # don't move
-                # We want to discourage not moving outside the middle horizon
-                if not self.middle_rect.collidepoint(paddle.rect.center):
-                    genome.fitness -= 0.05  
+                genome.fitness -= 0.01  # we want to discourage not moving
             if decision == 1:  # move up
                 paddle.training_movement(True, False, genome)
             elif decision == 2:  # move down
@@ -180,9 +174,6 @@ class PongGame:
         self.display.fill(window.white)
         window.draw_playablesurface(self.display)
         window.draw_centerline(self.display)
-
-        # Draw middle rectangle
-        pygame.draw.rect(self.display, (255, 0, 0), self.middle_rect, 1)
 
         # Draw entities
         for ground in grounds:
@@ -221,10 +212,10 @@ def eval_genomes(genomes, config):
 
 
 def run_neat(config):
-    # population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-59")
+    # population = neat.Checkpointer.restore_checkpoint("neat-checkpoint-75") 
     population = neat.Population(config)
     stats = neat.StatisticsReporter()
-    num_generations = 5
+    num_generations = 1
 
     population.add_reporter(neat.StdOutReporter(True))
     population.add_reporter(stats)
@@ -237,7 +228,7 @@ def run_neat(config):
 
 
 def test_ai(config):
-    with open("test4/best.pickle", "rb") as pickle_file:
+    with open("checkpoints/best.pickle", "rb") as pickle_file:
         winner = pickle.load(pickle_file)
 
     # Initialize window
@@ -263,11 +254,11 @@ if __name__ == "__main__":
         config_path
     )
     
-    # JSON file
+    # JSON file of colors
     json_path = os.path.join(local_dir, "colors.json")
     with open(json_path) as json_file:
         colors = json.load(json_file)
         colors.reverse
 
-    run_neat(config)
-    # test_ai(config) 
+    # run_neat(config)
+    test_ai(config) 

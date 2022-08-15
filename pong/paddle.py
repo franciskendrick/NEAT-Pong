@@ -56,7 +56,7 @@ class Paddle:
             if window.playable_rect.top <= handle_hitbox.top:
                 self.rect.y -= self.vel * window.delta_time
             else:
-                genome.fitness -= 0.05  # we want to discourage bumping into walls
+                genome.fitness -= 0.01  # we want to discourage bumping into walls
 
         # Down movement
         if down: 
@@ -67,7 +67,7 @@ class Paddle:
             if window.playable_rect.bottom >= handle_hitbox.bottom:
                 self.rect.y += self.vel * window.delta_time
             else:
-                genome.fitness -= 0.05  # we want to discourage bumping into walls
+                genome.fitness -= 0.01  # we want to discourage bumping into walls
 
     # Functions --------------------------------------------------- #
     def update_sensitivity(self, sensitivity):
