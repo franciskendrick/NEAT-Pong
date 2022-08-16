@@ -1,5 +1,4 @@
 from pong import Game
-from pong import Paddle
 from pong import window
 from datetime import datetime
 import pygame
@@ -15,13 +14,6 @@ class PongGame:
         self.win = win
         self.display = display
         self.clock = clock
-
-        self.middle_rect = pygame.Rect(
-            0,  # x
-            Game.paddle_positions["left"][1],  # y
-            window.playable_rect.width,  # width
-            Paddle.height  # height
-        )
 
     # Testing ----------------------------------------------------- #
     def test_ai(self, genome, config):
@@ -58,9 +50,7 @@ class PongGame:
 
             # Decisions
             decision = output.index(max(output))
-            if decision == 0:  # don't move
-                pass
-            elif decision == 1:  # move up
+            if decision == 1:  # move up
                 game.paddles["right"].testing_movement(True, False)
             elif decision == 2:  # move down
                 game.paddles["right"].testing_movement(False, True)
